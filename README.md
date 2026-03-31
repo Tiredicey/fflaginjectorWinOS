@@ -1,12 +1,11 @@
-\# FFlag Injector
+# FFlag Injector
 
 
 
 A lightweight open-source Windows tool for injecting Roblox FFlags via memory.
 
 
-
-\## Download
+## Download
 
 
 
@@ -18,7 +17,7 @@ Go to \[\*\*Releases\*\*](https://github.com/Z4rru/fflaginjector/releases) and d
 
 
 
-\## Features
+## Features
 
 
 
@@ -36,7 +35,7 @@ Go to \[\*\*Releases\*\*](https://github.com/Z4rru/fflaginjector/releases) and d
 
 
 
-\## Build from source
+## Build from source
 
 
 
@@ -50,7 +49,7 @@ Requires \[.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
 
 
 
-\## License
+## License
 
 
 
