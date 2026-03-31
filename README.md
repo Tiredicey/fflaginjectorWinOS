@@ -9,7 +9,7 @@ A lightweight open-source Windows tool for injecting Roblox FFlags via memory.
 
 
 
-Go to \[\*\*Releases\*\*](https://github.com/Z4rru/fflaginjector/releases) and download `FlagInjector.exe`.
+Go to [\*\*Releases\*\*](https://github.com/Z4rru/fflaginjector/releases) and download `FlagInjector.exe`.
 
 
 
