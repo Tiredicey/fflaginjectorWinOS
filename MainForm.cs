@@ -102,6 +102,7 @@ sealed class MainForm : Form
 
         _saveDebounce = new System.Threading.Timer(SaveDebounceCallback, null, Timeout.Infinite, Timeout.Infinite);
 
+        DoubleBuffered = true;
         Text          = "FFlag Injector";
         MinimumSize   = new Size(640, 520);
         StartPosition = FormStartPosition.CenterScreen;
@@ -272,6 +273,14 @@ sealed class MainForm : Form
             W32.DwmSetWindowAttribute(Handle, 19, ref val, sizeof(int));
     }
 
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        if (_animBg != null && ClientSize.Width > 0)
+            _animBg.RenderTo(e.Graphics, ClientSize.Width, ClientSize.Height);
+        else
+            base.OnPaintBackground(e);
+    }
+
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -290,6 +299,7 @@ sealed class MainForm : Form
     protected override void OnResize(EventArgs e)
     {
         base.OnResize(e);
+        _animBg?.SetRenderSize(ClientSize.Width, ClientSize.Height);
         if (WindowState == FormWindowState.Minimized)
         {
             if (!_settings.FirstMinimizeDone)
@@ -410,10 +420,10 @@ sealed class MainForm : Form
         _progress.Visible = false; _progress.Width = 120; _progress.Style = ProgressBarStyle.Continuous;
         status.Items.AddRange(new ToolStripItem[] { _st1, _st2, _st3, _progress, _stToast });
 
-        _legendPanel = new Panel { Dock = DockStyle.Bottom, Height = 22, BackColor = Theme.C.Surface, Padding = new Padding(6, 2, 6, 2) };
+        _legendPanel = new Panel { Dock = DockStyle.Bottom, Height = 22, BackColor = Color.Transparent, Padding = new Padding(6, 2, 6, 2) };
         BuildLegend();
 
-        var actPanel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 74, Padding = new Padding(6, 4, 6, 2), BackColor = Theme.C.Surface, WrapContents = true };
+        var actPanel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 74, Padding = new Padding(6, 4, 6, 2), BackColor = Color.Transparent, WrapContents = true };
         var btnApply   = MakeBtn("\u25B6 Apply All (Ctrl+Shift+A)", 190, true);
         var btnImp     = MakeBtn("Import (Ctrl+O)", 120);
         var btnExp     = MakeBtn("Export (Ctrl+S)", 120);
@@ -467,7 +477,7 @@ sealed class MainForm : Form
         _split.BackColor = Theme.C.Border; _split.SplitterWidth = 3;
         _split.Panel1.BackColor = Theme.C.Bg; _split.Panel2.BackColor = Theme.C.Bg;
 
-        _lblTopHdr = new Label { Text = "AVAILABLE FLAGS", Dock = DockStyle.Top, Height = 26, Padding = new Padding(6, 6, 0, 0), Font = _hdrFont, ForeColor = Theme.C.Sub, BackColor = Theme.C.Bg };
+        _lblTopHdr = new Label { Text = "AVAILABLE FLAGS", Dock = DockStyle.Top, Height = 26, Padding = new Padding(6, 6, 0, 0), Font = _hdrFont, ForeColor = Theme.C.Sub, BackColor = Color.Transparent };
 
         var topFilterFlow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 32, BackColor = Theme.C.Bg, WrapContents = false, Padding = new Padding(0, 2, 0, 2), AutoSize = false };
         _searchTop.Width = 300; _searchTop.BackColor = Theme.C.Surface; _searchTop.ForeColor = Theme.C.Fg; _searchTop.BorderStyle = BorderStyle.FixedSingle;
@@ -525,7 +535,7 @@ sealed class MainForm : Form
 
         _split.Panel1.Controls.Add(_lvTop); _split.Panel1.Controls.Add(addRow); _split.Panel1.Controls.Add(topFilterFlow); _split.Panel1.Controls.Add(_lblTopHdr);
 
-        _lblBotHdr = new Label { Text = "MODIFIED FLAGS", Dock = DockStyle.Top, Height = 26, Padding = new Padding(6, 6, 0, 0), Font = _hdrFont, ForeColor = Theme.C.Sub, BackColor = Theme.C.Bg };
+        _lblBotHdr = new Label { Text = "MODIFIED FLAGS", Dock = DockStyle.Top, Height = 26, Padding = new Padding(6, 6, 0, 0), Font = _hdrFont, ForeColor = Theme.C.Sub, BackColor = Color.Transparent };
 
         var botFilterFlow = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 32, BackColor = Theme.C.Bg, WrapContents = false, Padding = new Padding(0, 2, 0, 2), AutoSize = false };
         _searchBot.Width = 220; _searchBot.BackColor = Theme.C.Surface; _searchBot.ForeColor = Theme.C.Fg; _searchBot.BorderStyle = BorderStyle.FixedSingle;
@@ -614,12 +624,13 @@ sealed class MainForm : Form
         Controls.Add(_split); Controls.Add(_legendPanel); Controls.Add(actPanel); Controls.Add(status);
 
         _animBg = new AnimatedBackground();
-        _animBg.SetParticleCount(AppSettings.Instance.ParticleCount);
-        var bgPreset = AppSettings.Instance;
-        if (bgPreset.BackgroundPreset == "Custom" && File.Exists(bgPreset.BackgroundImagePath))
-            _animBg.SetBackground(Image.FromFile(bgPreset.BackgroundImagePath), (float)bgPreset.BackgroundOpacity);
-        Controls.Add(_animBg);
-        _animBg.SendToBack();
+        var bgCfg = AppSettings.Instance;
+        _animBg.SetParticleCount(bgCfg.ParticleCount);
+        _animBg.SetPreset(bgCfg.BackgroundPreset);
+        if (bgCfg.BackgroundPreset == "Custom" && File.Exists(bgCfg.BackgroundImagePath))
+            _animBg.SetBackground(Image.FromFile(bgCfg.BackgroundImagePath), (float)bgCfg.BackgroundOpacity);
+        _animBg.SetRenderSize(ClientSize.Width, ClientSize.Height);
+        _animBg.FrameUpdated += () => { try { if (!IsDisposed && IsHandleCreated) Invalidate(false); } catch { } };
 
         foreach (var s in _settings.SearchHistory) { _searchAcTop.Add(s); _searchAcBot.Add(s); }
         RefreshAll();
@@ -1650,6 +1661,7 @@ sealed class MainForm : Form
     {
         using var dlg = new BackgroundPickerDialog();
         if (dlg.ShowDialog(this) != DialogResult.OK) return;
+        _animBg.SetPreset(dlg.SelectedPreset);
         if (dlg.SelectedPreset == "Custom" && File.Exists(dlg.ImagePath))
             _animBg.SetBackground(Image.FromFile(dlg.ImagePath), dlg.Opacity);
         else
