@@ -9,7 +9,7 @@ sealed class BackgroundPickerDialog : Form
 {
     public string   SelectedPreset { get; private set; }
     public string   ImagePath      { get; private set; }
-    public float    Opacity        { get; private set; }
+    public new float Opacity       { get; private set; }
 
     private readonly ListBox   _presetList = new();
     private readonly TrackBar  _opacityBar = new();
