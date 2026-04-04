@@ -39,7 +39,7 @@ Go to [\*\*Releases\*\*](https://github.com/Z4rru/fflaginjector/releases) and do
 
 
 
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+ dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 
 
 
