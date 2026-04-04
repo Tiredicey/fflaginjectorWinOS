@@ -47,6 +47,7 @@ sealed class DarkRenderer : ToolStripProfessionalRenderer
 
     protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
     {
+        if (e.Item == null) return;
         int y = e.Item.Height / 2;
         using var p = new Pen(Theme.C.Border);
         e.Graphics.DrawLine(p, 4, y, e.Item.Width - 4, y);
